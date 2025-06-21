@@ -1,165 +1,97 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Proposal Pro — Streamlined Edition</title>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <style>
-    /* ─── Design Tokens ─────────────────────────────────────────────── */
-    :root{
-      --bg: #fff;
-      --fg: #000;
-      --fg‑muted:#555;
-      --border:#e5e5e5;
-      --accent:#111;
-    }
-    [data-theme="dark"]{
-      --bg:#000;--fg:#fff;--fg‑muted:#aaa;--border:#333;--accent:#fff;
-    }
-
-    /* ─── Reset / Base ─────────────────────────────────────────────── */
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:'Open Sans',system-ui,sans-serif;line-height:1.6;
-      background:var(--bg);color:var(--fg);
-    }
-    a{color:var(--fg);text-decoration:underline}
-
-    /* ─── Toolbar ──────────────────────────────────────────────────── */
-    .toolbar{
-      position:sticky;top:0;z-index:100;
-      display:flex;align-items:center;gap:.5rem;
-      padding:.75rem 1rem;backdrop-filter:saturate(150%) blur(4px);
-      background:color-mix(in srgb,var(--bg) 90%,transparent);
-      border-bottom:1px solid var(--border);
-    }
-    .toolbar select,.toolbar input[type="text"],.toolbar button{
-      font:600 .85rem/1 'Open Sans',sans-serif;appearance:none;
-      border:1px solid var(--border);background:var(--bg);
-      color:var(--fg);padding:.4rem .6rem;border-radius:6px;cursor:pointer;
-    }
-    .toolbar button{display:flex;align-items:center;justify-content:center;gap:.25rem;width:2rem;height:2rem;padding:0;background:none;border:none}
-    .toolbar button:hover{background:var(--accent);color:var(--bg)}
-    .toolbar .divider{width:1px;height:2rem;background:var(--border)}
-
-    /* ─── Editor ───────────────────────────────────────────────────── */
-    #editor{
-      min-height:calc(100vh - 64px);
-      padding:2.5rem 1.5rem;outline:none;
-      max-width:820px;margin-inline:auto;
-    }
-    #editor:focus{outline:none}
-    #editor h1{font-size:2rem;font-weight:800;margin:0 0 1.25rem;border-bottom:2px solid var(--accent);padding-bottom:.75rem}
-    #editor h2{font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem}
-    #editor p{margin:1rem 0}
-    #editor ul,#editor ol{padding-left:1.25rem;margin:1rem 0}
-    #editor blockquote{border-left:4px solid var(--accent);padding:1rem 1.25rem;background:color-mix(in srgb,var(--bg) 90%,var(--accent) 10%);margin:1.25rem 0;}
-
-    /* ─── Utilities ───────────────────────────────────────────────── */
-    .hidden{display:none}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Pro — Professional Edition</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <link rel="stylesheet" href="css/editor.css">
 </head>
 <body>
-  <!-- ════════════ TOOLBAR ════════════ -->
-  <nav class="toolbar" id="toolbar">
-    <!-- Template selector -->
-    <select id="template-select" title="Insert template" onchange="loadTemplate(this.value)">
-      <option selected disabled>Insert template…</option>
-      <option value="client">Client Proposal</option>
-      <option value="business">Business</option>
-      <option value="project">Project</option>
-      <option value="service">Service</option>
-      <option value="blank">Blank</option>
-    </select>
+    <header class="header">
+        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme (Ctrl+L)">
+            <i data-lucide="sun" id="theme-icon"></i>
+        </div>
+        <h1><i data-lucide="file-text"></i>Proposal Pro</h1>
+        <p>The new standard for winning business proposals.</p>
+    </header>
 
-    <div class="divider"></div>
+    <div class="details-panel" id="details-panel">
+        <div class="details-grid">
+            <div class="detail-group">
+                <label class="detail-label" for="client-name">Client Name</label>
+                <input type="text" class="detail-input" id="client-name" placeholder="Acme Inc.">
+            </div>
+            <div class="detail-group">
+                <label class="detail-label" for="project-title">Project Title</label>
+                <input type="text" class="detail-input" id="project-title" placeholder="Q3 Marketing Campaign">
+            </div>
+            <div class="detail-group">
+                <label class="detail-label" for="total-amount">Total Amount</label>
+                <input type="text" class="detail-input" id="total-amount" placeholder="$25,000">
+            </div>
+            <div class="detail-group">
+                <label class="detail-label" for="payment-link">Payment Link</label>
+                <input type="url" class="detail-input" id="payment-link" placeholder="https://stripe.com/pay/...">
+            </div>
+             <div class="detail-group signature-group">
+                <label class="detail-label">Signature</label>
+                <div class="signature-area" id="signature-area" onclick="addSignature()" title="Click to upload signature">
+                    <span id="signature-placeholder">Click to Add</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Formatting -->
-    <button onclick="cmd('bold')" title="Bold (Ctrl+B)"><i data-lucide="bold"></i></button>
-    <button onclick="cmd('italic')" title="Italic (Ctrl+I)"><i data-lucide="italic"></i></button>
-    <button onclick="cmd('underline')" title="Underline (Ctrl+U)"><i data-lucide="underline"></i></button>
-    <button onclick="cmd('insertUnorderedList')" title="Bulleted list"><i data-lucide="list"></i></button>
-    <button onclick="cmd('insertOrderedList')" title="Numbered list"><i data-lucide="list-ordered"></i></button>
-    <button onclick="cmd('justifyLeft')" title="Align left"><i data-lucide="align-left"></i></button>
-    <button onclick="cmd('justifyCenter')" title="Align center"><i data-lucide="align-center"></i></button>
-    <button onclick="cmd('justifyRight')" title="Align right"><i data-lucide="align-right"></i></button>
+    <nav class="toolbar" id="toolbar">
+        <select id="template-select" title="Load a template" onchange="loadTemplate(this.value)">
+            <option selected disabled>Load Template</option>
+            <option value="client">Client Proposal</option>
+            <option value="business">Business Proposal</option>
+            <option value="project">Project Proposal</option>
+            <option value="blank">Blank Document</option>
+        </select>
+        <div class="divider"></div>
+        <button onclick="toggleDetails()" title="Toggle Proposal Details (Ctrl+D)" id="details-btn">
+            <i data-lucide="settings-2"></i><span>Details</span>
+        </button>
+        <div class="divider"></div>
+        <select id="format-select" onchange="formatText(this.value)" title="Format text block">
+            <option value="">Format</option>
+            <option value="h1">Title</option>
+            <option value="h2">Heading</option>
+            <option value="h3">Subheading</option>
+            <option value="p">Paragraph</option>
+        </select>
+        <div class="divider"></div>
+        <button class="square" onclick="cmd('bold')" title="Bold (Ctrl+B)" id="bold-btn"><i data-lucide="bold"></i></button>
+        <button class="square" onclick="cmd('italic')" title="Italic (Ctrl+I)" id="italic-btn"><i data-lucide="italic"></i></button>
+        <button class="square" onclick="cmd('underline')" title="Underline (Ctrl+U)" id="underline-btn"><i data-lucide="underline"></i></button>
+        <div class="divider"></div>
+        <button class="square" onclick="cmd('insertUnorderedList')" title="Bullet list"><i data-lucide="list"></i></button>
+        <button class="square" onclick="cmd('insertOrderedList')" title="Numbered list"><i data-lucide="list-ordered"></i></button>
+        <div class="divider"></div>
+        <button class="square" onclick="addLink()" title="Add Link (Ctrl+K)"><i data-lucide="link"></i></button>
+        <button class="square" onclick="addImage()" title="Add Image"><i data-lucide="image"></i></button>
+        <button class="square" onclick="addTable()" title="Insert Table"><i data-lucide="table"></i></button>
+        <button class="square" onclick="addPaymentButton()" title="Add Payment Button"><i data-lucide="credit-card"></i></button>
+        <div class="divider"></div>
+        <button onclick="exportPDF()" title="Export as PDF (Ctrl+P)" id="export-btn">
+            <i data-lucide="file-down"></i><span>Export PDF</span>
+        </button>
+    </nav>
 
-    <div class="divider"></div>
+    <main class="editor-container">
+        <div id="editor" contenteditable="true" spellcheck="true"></div>
+    </main>
 
-    <!-- Theme toggle -->
-    <button onclick="toggleTheme()" title="Toggle dark / light"><i data-lucide="sun"></i></button>
-  </nav>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- ════════════ EDITOR ════════════ -->
-  <div id="editor" contenteditable="true" spellcheck="true"></div>
-
-  <script>
-    /* ─── Icon init ─── */
-    lucide.createIcons();
-
-    /* ─── Templates ─── */
-    const templates={
-      client:`<h1>Project Proposal</h1>
-<h2>About the Client</h2>
-<p>Describe the client, their business and objectives.</p>
-<h2>About Me</h2>
-<p>Introduce yourself, your skills and relevant experience.</p>
-<h2>About the Project – Understanding</h2>
-<p>Summarise your understanding of the project goals, constraints and desired outcomes.</p>
-<h2>Value Proposition</h2>
-<p>Explain the unique value you will deliver and why you are the best choice.</p>
-<h2>Reference Example</h2>
-<p>Provide links or screenshots of similar work you have successfully completed.</p>
-<h2>Next Steps & Payment</h2>
-<p>Please review the proposal. When ready, proceed via the payment link below:</p>
-<p><a href="https://payment-provider.com/your-link" target="_blank">Pay Now</a></p>`,
-      business:`<h1>Business Proposal</h1>\n\n<h2>Executive Summary</h2><p>...</p>`,
-      project:`<h1>Project Proposal</h1>\n\n<h2>Project Overview</h2><p>...</p>`,
-      service:`<h1>Service Proposal</h1>\n\n<h2>Service Overview</h2><p>...</p>`,
-      blank:`<h1>Your Proposal Title</h1><p>Start writing your proposal here…</p>`
-    };
-
-    function loadTemplate(key){
-      if(!templates[key])return;
-      editor.innerHTML=templates[key];
-      editor.focus();
-    }
-
-    /* ─── Formatting helpers ─── */
-    const editor=document.getElementById('editor');
-    function cmd(command,value=null){
-      document.execCommand(command,false,value);editor.focus();
-    }
-
-    /* ─── Theme ─── */
-    function toggleTheme(){
-      const html=document.documentElement;const next=html.dataset.theme==='dark'?'light':'dark';
-      html.dataset.theme=next;localStorage.setItem('pp_theme',next);
-      updateThemeIcon();
-    }
-    function updateThemeIcon(){
-      const isDark=document.documentElement.dataset.theme==='dark';
-      const iconBtn=document.querySelector('button[title^="Toggle"] i');
-      iconBtn.setAttribute('data-lucide',isDark?'moon':'sun');
-      lucide.createIcons();
-    }
-    (()=>{document.documentElement.dataset.theme=localStorage.getItem('pp_theme')||'light';updateThemeIcon();})();
-
-    /* ─── Shortcuts ─── */
-    document.addEventListener('keydown',e=>{
-      if(!(e.ctrlKey||e.metaKey))return;
-      switch(e.key){
-        case 'b':e.preventDefault();cmd('bold');break;
-        case 'i':e.preventDefault();cmd('italic');break;
-        case 'u':e.preventDefault();cmd('underline');break;
-        case 'l':e.preventDefault();toggleTheme();break;
-      }
-    });
-
-    /* ─── Initial content ─── */
-    loadTemplate('client');
-  </script>
+    <script src="js/pdf-export.js"></script>
+    <script src="js/editor.js"></script>
 </body>
 </html>
