@@ -1,143 +1,140 @@
 /**
- * Exports the content of the editor to a high-quality PDF file.
- * Uses the jsPDF.html() method to create a professional document
- * with selectable text and clickable links.
+ * A centralized function to build the final proposal HTML from various sources.
+ * This ensures that the preview, PDF, and HTML exports are all consistent.
+ * @returns {DocumentFragment} - A DOM fragment containing the fully assembled proposal.
  */
-async function exportToPDF() {
+function buildFinalProposalHTML() {
+    // 1. Get all the data
+    const clientName = document.getElementById('client-name').value;
+    const projectTitle = document.getElementById('project-title').value;
+    const totalAmount = document.getElementById('total-amount').value;
+    const paymentLink = document.getElementById('payment-link').value;
+    const editorContent = document.getElementById('editor').innerHTML;
+    // signatureImage is a global variable from editor.js
+
+    // 2. Clone the master template from index.html
+    const template = document.getElementById('proposal-export-template');
+    const proposalFragment = template.content.cloneNode(true);
+
+    // 3. Get handles to the sections inside the template
+    const headerInfoSection = proposalFragment.getElementById('template-header-info');
+    const mainContentSection = proposalFragment.getElementById('template-main-content');
+    const signatureSection = proposalFragment.getElementById('template-signature-section');
+
+    // 4. Build and inject the header info if it exists
+    if (clientName || projectTitle || totalAmount) {
+        let headerHTML = `
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e5e5e5;">
+                ${clientName ? `<p style="margin: 8px 0;"><strong>Client:</strong> ${clientName}</p>` : ''}
+                ${projectTitle ? `<p style="margin: 8px 0;"><strong>Project:</strong> ${projectTitle}</p>` : ''}
+                ${totalAmount ? `<p style="margin: 8px 0;"><strong>Total Investment:</strong> ${totalAmount}</p>` : ''}
+                ${paymentLink ? `<p style="margin: 8px 0;"><strong>Payment Link:</strong> <a href="${paymentLink}" target="_blank">${paymentLink}</a></p>` : ''}
+            </div>`;
+        headerInfoSection.innerHTML = headerHTML;
+    }
+
+    // 5. Inject the main editor content
+    mainContentSection.innerHTML = editorContent;
+
+    // 6. Build and inject the signature if it exists
+    if (window.signatureImage) {
+        let signatureHTML = `
+            <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #e5e5e5; text-align: right;">
+                <p style="margin-bottom: 10px;"><strong>Authorized Signature:</strong></p>
+                <img src="${window.signatureImage}" style="max-width: 200px; max-height: 80px;">
+            </div>`;
+        signatureSection.innerHTML = signatureHTML;
+    }
+
+    return proposalFragment;
+}
+
+/**
+ * Previews the assembled proposal in a new browser tab.
+ */
+window.previewProposal = function() {
+    const proposalFragment = buildFinalProposalHTML();
+    const projectTitle = document.getElementById('project-title').value;
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const isDark = currentTheme === 'dark';
+
+    // The export container itself has the necessary styles, but we need body styles
+    const finalHTML = new XMLSerializer().serializeToString(proposalFragment);
+    
+    const previewWindow = window.open('', '_blank');
+    previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <title>Preview: ${projectTitle || 'Proposal'}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    font-family: 'Open Sans', Arial, sans-serif; max-width: 700px; margin: 0 auto;
+                    background: ${isDark ? '#000' : '#fff'}; color: ${isDark ? '#fff' : '#000'};
+                }
+                /* You can add more global preview styles here if needed */
+            </style>
+        </head>
+        <body>${finalHTML}</body>
+        </html>
+    `);
+    previewWindow.document.close();
+};
+
+/**
+ * Exports the assembled proposal to a standalone HTML file.
+ */
+window.exportToHTML = function() {
+    const proposalFragment = buildFinalProposalHTML();
+    const projectTitle = document.getElementById('project-title').value;
+    const finalHTML = new XMLSerializer().serializeToString(proposalFragment);
+    
+    const blob = new Blob([`<!DOCTYPE html><html><head><title>${projectTitle || 'Proposal'}</title><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></head><body>${finalHTML}</body></html>`], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${projectTitle ? projectTitle.replace(/\s+/g, '-').toLowerCase() : 'proposal'}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+/**
+ * Exports the assembled proposal to a high-quality PDF file.
+ */
+window.exportToPDF = async function() {
     const button = document.getElementById('export-pdf-btn');
-    const originalHTML = button.innerHTML;
-    const editor = document.getElementById('editor');
-
+    const originalContent = button.innerHTML;
+    
     try {
-        button.innerHTML = '<i data-lucide="loader-2"></i> Generating...';
-        button.classList.add('generating');
+        button.innerHTML = '<i data-lucide="loader-2" class="generating"></i> PDF...';
         lucide.createIcons();
-        
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4',
-        });
 
-        // This is a direct replacement for the old html2canvas method.
-        // It renders HTML elements directly into the PDF, preserving text and links.
-        await pdf.html(editor, {
+        const proposalElement = buildFinalProposalHTML().querySelector('.export-container');
+        const projectTitle = document.getElementById('project-title').value;
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+
+        // Temporarily append to body to ensure all styles are computed
+        document.body.appendChild(proposalElement);
+
+        await pdf.html(proposalElement, {
             callback: function (doc) {
-                const fileName = `proposal-${new Date().toISOString().split('T')[0]}.pdf`;
+                const fileName = `${projectTitle ? projectTitle.replace(/\s+/g, '-').toLowerCase() : 'proposal'}.pdf`;
                 doc.save(fileName);
+                document.body.removeChild(proposalElement); // Clean up
             },
-            margin: [15, 15, 15, 15], // Top, Right, Bottom, Left
+            margin: [15, 15, 15, 15],
             autoPaging: 'text',
-            x: 0,
-            y: 0,
-            width: 180, // (210mm A4 width - 15mm*2 margins)
-            windowWidth: editor.scrollWidth,
-            html2canvas: {
-                // scale is important for performance and to avoid oversized images
-                scale: 0.3, 
-                useCORS: true,
-                allowTaint: true
-            }
+            width: 180,
+            windowWidth: proposalElement.offsetWidth,
         });
 
     } catch (error) {
         console.error('Error generating PDF:', error);
-        alert('An error occurred while generating the PDF. Please check the console for details.');
+        alert('An error occurred while generating the PDF.');
     } finally {
-        button.innerHTML = originalHTML;
-        button.classList.remove('generating');
+        button.innerHTML = originalContent;
         lucide.createIcons();
     }
-}
-
-/**
- * Exports the content of the editor to a standalone HTML file,
- * preserving the current theme (light or dark).
- */
-function exportToHTML() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const isDark = currentTheme === 'dark';
-    const editor = document.getElementById('editor');
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proposal Document</title>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Open Sans', Arial, sans-serif;
-            line-height: 1.8;
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 50px 40px;
-            background: ${isDark ? '#000000' : '#ffffff'};
-            color: ${isDark ? '#ffffff' : '#000000'};
-        }
-        h1 { 
-            font-size: 2.5em; 
-            font-weight: 800;
-            border-bottom: 3px solid ${isDark ? '#ffffff' : '#000000'};
-            padding-bottom: 16px;
-            margin-bottom: 32px;
-        }
-        h2 { font-size: 2em; font-weight: 700; margin: 48px 0 20px 0; }
-        h3 { font-size: 1.5em; font-weight: 600; margin: 32px 0 20px 0; }
-        h4 { font-size: 1.25em; font-weight: 600; margin: 32px 0 20px 0; }
-        p { margin: 20px 0; font-weight: 400; }
-        ul, ol { margin: 24px 0; padding-left: 32px; }
-        li { margin: 12px 0; }
-        strong { font-weight: 700; }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 32px 0;
-            border: 2px solid ${isDark ? '#ffffff' : '#000000'};
-        }
-        td, th {
-            border: 1px solid ${isDark ? '#333333' : '#e5e5e5'};
-            padding: 16px 20px;
-            background: ${isDark ? '#111111' : '#ffffff'};
-        }
-        th {
-            background: ${isDark ? '#ffffff' : '#000000'};
-            color: ${isDark ? '#000000' : '#ffffff'};
-            font-weight: 700;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin: 32px 0;
-        }
-        a {
-            color: ${isDark ? '#ffffff' : '#000000'};
-            text-decoration: underline;
-            font-weight: 500;
-        }
-        blockquote {
-            border-left: 4px solid ${isDark ? '#ffffff' : '#000000'};
-            padding: 20px 24px;
-            margin: 32px 0;
-            background: ${isDark ? '#1a1a1a' : '#f5f5f5'};
-            font-style: italic;
-        }
-    </style>
-</head>
-<body>
-    ${editor.innerHTML}
-</body>
-</html>`;
-    
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const fileName = `proposal-${new Date().toISOString().split('T')[0]}.html`;
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-}
+};
