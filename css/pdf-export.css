@@ -1,0 +1,157 @@
+/* PDF EXPORT STYLESHEET
+    Designed for A4, single-column, professional documents.
+    Uses 'pt' units for fonts and 'mm' for layout, which are standard for print.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Roboto:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Merriweather', 'Georgia', serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #111;
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Roboto', 'Helvetica', sans-serif;
+    font-weight: 700;
+    color: #000;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 26pt;
+    font-weight: 800;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8pt;
+    margin-top: 0;
+    margin-bottom: 16pt;
+}
+
+h2 {
+    font-size: 16pt;
+    margin-top: 24pt;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4pt;
+    margin-bottom: 12pt;
+}
+
+h3 {
+    font-size: 13pt;
+    margin-top: 18pt;
+    margin-bottom: 6pt;
+}
+
+p {
+    margin-bottom: 1em;
+    text-align: justify;
+}
+
+strong {
+    font-weight: 700;
+}
+
+em {
+    font-style: italic;
+    color: #333;
+}
+
+a {
+    color: #000;
+    text-decoration: underline;
+}
+
+ul, ol {
+    padding-left: 20pt;
+    margin-bottom: 1em;
+}
+
+li {
+    margin-bottom: 0.5em;
+}
+
+blockquote {
+    margin: 1.5em 0;
+    padding: 1em 1.5em;
+    border-left: 3px solid #000;
+    background-color: #f8f9fa;
+    font-style: italic;
+}
+
+table {
+    width: 100%;
+    margin: 1.5em 0;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10pt;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-size: 9pt;
+}
+
+th {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 1.5em 0;
+}
+
+.proposal-details-box {
+    background: #f8f9fa;
+    padding: 12pt;
+    margin-bottom: 24pt;
+    border-radius: 5px;
+    border: 1px solid #e9ecef;
+    font-family: 'Roboto', sans-serif;
+    font-size: 10pt;
+}
+.proposal-details-box p {
+    margin: 0.5em 0;
+    text-align: left;
+}
+
+.signature-box {
+    margin-top: 40pt;
+    padding-top: 20pt;
+    border-top: 1px solid #ccc;
+    text-align: right;
+}
+
+.payment-button {
+    display: inline-block;
+    background: #000;
+    color: #fff !important; /* Important to override default link color */
+    padding: 12pt 24pt;
+    border-radius: 5px;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 12pt;
+    margin: 1.5em 0;
+    text-align: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5em;
+}
