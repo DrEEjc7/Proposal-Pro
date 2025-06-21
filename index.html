@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proposal Pro - Create winning business proposals</title>
+    <title>Proposal Pro - Create winning business proposals with professional formatting</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -13,11 +13,139 @@
 </head>
 <body>
     <div class="container">
+        <header class="header">
+            <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode (Ctrl+D)">
+                <i data-lucide="sun" id="theme-icon"></i>
+            </div>
+            <h1>
+                <i data-lucide="file-text"></i>
+                Proposal Pro
+            </h1>
+            <div class="subtitle">Create winning business proposals with professional formatting</div>
+        </header>
+
+        <div class="proposal-templates">
+            <div class="templates-label">Quick Start Templates</div>
+            <div class="template-buttons">
+                <button class="template-btn" onclick="loadTemplate('business')">Business Proposal</button>
+                <button class="template-btn" onclick="loadTemplate('project')">Project Proposal</button>
+                <button class="template-btn" onclick="loadTemplate('service')">Service Proposal</button>
+                <button class="template-btn" onclick="loadTemplate('consulting')">Consulting Proposal</button>
+                <button class="template-btn" onclick="loadTemplate('blank')">Start Blank</button>
+            </div>
         </div>
+
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <div class="toolbar-label">Actions</div>
+                <div class="toolbar-row">
+                    <div class="btn-group">
+                        <button class="toolbar-btn" onclick="execCommand('undo')" title="Undo">
+                            <i data-lucide="undo"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('redo')" title="Redo">
+                            <i data-lucide="redo"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <div class="toolbar-label">Text Formatting</div>
+                <div class="toolbar-row">
+                    <div class="btn-group">
+                        <button class="toolbar-btn" onclick="execCommand('bold')" title="Bold (Ctrl+B)">
+                            <i data-lucide="bold"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('italic')" title="Italic (Ctrl+I)">
+                            <i data-lucide="italic"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('underline')" title="Underline (Ctrl+U)">
+                            <i data-lucide="underline"></i>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="toolbar-btn" onclick="execCommand('justifyLeft')" title="Align Left">
+                            <i data-lucide="align-left"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('justifyCenter')" title="Align Center">
+                            <i data-lucide="align-center"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('justifyRight')" title="Align Right">
+                            <i data-lucide="align-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <div class="toolbar-label">Structure</div>
+                <div class="toolbar-row">
+                    <select class="toolbar-select" onchange="execCommand('formatBlock', this.value)">
+                        <option value="p">Paragraph</option>
+                        <option value="h1">Title</option>
+                        <option value="h2">Section Header</option>
+                        <option value="h3">Subsection</option>
+                        <option value="h4">Minor Header</option>
+                    </select>
+                    <div class="btn-group">
+                        <button class="toolbar-btn" onclick="execCommand('insertUnorderedList')" title="Bullet List">
+                            <i data-lucide="list"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="execCommand('insertOrderedList')" title="Numbered List">
+                            <i data-lucide="list-ordered"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <div class="toolbar-label">Content</div>
+                <div class="toolbar-row">
+                    <div class="btn-group">
+                        <button class="toolbar-btn" onclick="insertTable()" title="Insert Table">
+                            <i data-lucide="table"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">
+                            <i data-lucide="image"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="insertQuote()" title="Insert Quote">
+                            <i data-lucide="quote"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor" id="editor" contenteditable="true" spellcheck="true">
+                </div>
+        </div>
+
+        <div class="export-section">
+            <div class="export-label">Finalize Your Proposal</div>
+            <button class="export-btn" id="export-pdf-btn" onclick="exportToPDF()">
+                <i data-lucide="file-down"></i>
+                Export PDF
+            </button>
+            <button class="export-btn" onclick="exportToHTML()" title="Ctrl+S">
+                <i data-lucide="code"></i>
+                Export HTML
+            </button>
+            <button class="export-btn" onclick="clearDocument()">
+                <i data-lucide="trash-2"></i>
+                Clear All
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p>Copyright © <span id="current-year"></span> • Designed with ❤️ by <a href="https://dee7studio.com" target="_blank"><strong>Dee7 Studio</strong></a></p>
+        </footer>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+
     <script src="js/pdf-export.js"></script>
     <script src="js/editor.js"></script>
 </body>
