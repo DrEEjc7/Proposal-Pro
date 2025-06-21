@@ -1,129 +1,114 @@
 document.addEventListener('DOMContentLoaded', () => {
     // === GLOBAL STATE & ELEMENTS ===
     const editor = document.getElementById('editor');
-    window.signatureImage = null; // Stored as base64 string
+    window.signatureImage = null; // Stored as base64
 
-    // === TEMPLATES ===
+    // === TEMPLATES (shortened for brevity) ===
     const templates = {
-        business: `<h1>Business Proposal</h1><h2>Executive Summary</h2><p>Provide a compelling overview of your business proposal...</p><h2>Company Overview</h2><p>Brief introduction to your company...</p><h2>Problem & Opportunity</h2><p>Clearly define the business challenges...</p><h2>Proposed Solution</h2><p>Detail your recommended approach...</p>`,
-        project: `<h1>Project Proposal</h1><h2>Project Overview</h2><p>Comprehensive description of the project...</p><h2>Scope of Work</h2><p>Detailed breakdown of tasks...</p><h2>Methodology</h2><p>Explain your project execution approach...</p>`,
-        service: `<h1>Service Proposal</h1><h2>Service Overview</h2><p>Description of services...</p><h2>Client Requirements</h2><p>Analysis of client needs...</p><h2>Service Offerings</h2><p>Detailed breakdown of services...</p>`,
-        consulting: `<h1>Consulting Proposal</h1><h2>Engagement Overview</h2><p>Executive summary...</p><h2>Current State Analysis</h2><p>Assessment of the current situation...</p><h2>Recommended Approach</h2><p>Your consulting methodology...</p>`,
-        blank: `<h1>Your Proposal Title</h1><p>Start writing your proposal here...</p>`
-    };
-    
-    // === UI & EDITOR FUNCTIONS ===
-
-    window.loadTemplate = (type) => {
-        if (templates[type]) {
-            editor.innerHTML = templates[type];
-            editor.focus();
-            updateProposalTitleFromEditor();
-        }
+        client: `<h1>Project Proposal</h1><h2>About the Client</h2><p>Describe the client...</p><h2>About Me</h2><p>Introduce yourself...</p>`,
+        business: `<h1>Business Proposal</h1><h2>Executive Summary</h2><p>Provide a compelling overview...</p>`,
+        project: `<h1>Project Proposal</h1><h2>Project Overview</h2><p>Comprehensive description...</p>`,
+        blank: `<h1>Your Proposal Title</h1><p>Start writing here...</p>`
     };
 
-    const updateProposalTitleFromEditor = () => {
-        const h1 = editor.querySelector('h1');
-        if(h1) {
-            document.getElementById('project-title').value = h1.textContent;
-        }
-    }
+    window.loadTemplate = (key) => {
+        if (!templates[key]) return;
+        editor.innerHTML = templates[key];
+        editor.focus();
+        updateTitleFromContent();
+    };
     
-    const updateEditorTitleFromInput = () => {
-        const projectTitle = document.getElementById('project-title').value;
-        let h1 = editor.querySelector('h1');
-        if (!h1) {
-            const p = editor.querySelector('p');
-            h1 = document.createElement('h1');
-            if (p) {
-                editor.insertBefore(h1, p);
-            } else {
-                editor.appendChild(h1);
-            }
-        }
-        h1.textContent = projectTitle || 'Your Proposal Title';
+    // === UI INTERACTIONS ===
+    window.toggleDetails = () => {
+        document.getElementById('details-panel').classList.toggle('active');
+        document.getElementById('details-btn').classList.toggle('active');
     };
 
     window.toggleTheme = () => {
-        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
+        const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem('pp_theme', theme);
+        updateThemeIcon(theme);
     };
 
     const updateThemeIcon = (theme) => {
-        const themeIcon = document.getElementById('theme-icon');
-        themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+        document.getElementById('theme-icon').dataset.lucide = theme === 'dark' ? 'moon' : 'sun';
         lucide.createIcons();
     };
 
-    const loadTheme = () => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-    };
-
-    window.execCommand = (command, value = null) => {
+    // === EDITOR COMMANDS ===
+    window.cmd = (command, value = null) => {
         document.execCommand(command, false, value);
         editor.focus();
-        updateToolbarStates();
-    };
-    
-    const updateToolbarStates = () => {
-        ['bold', 'italic', 'underline', 'justifyLeft', 'justifyCenter', 'justifyRight', 'insertUnorderedList', 'insertOrderedList'].forEach(cmd => {
-            const btn = document.querySelector(`.toolbar-btn[onclick="execCommand('${cmd}')"]`);
-            if (btn) {
-                document.queryCommandState(cmd) ? btn.classList.add('active') : btn.classList.remove('active');
-            }
-        });
     };
 
-    window.uploadSignature = () => {
+    window.formatText = (tag) => {
+        if (tag) cmd('formatBlock', `<${tag}>`);
+        document.getElementById('format-select').selectedIndex = 0;
+    };
+
+    window.addLink = () => {
+        const url = prompt('Enter URL:', 'https://');
+        if (url) cmd('createLink', url);
+    };
+    
+    window.addImage = () => {
+        const url = prompt('Enter image URL:');
+        if (url) cmd('insertHTML', `<img src="${url}" alt="Proposal Image">`);
+    };
+
+    window.addTable = () => {
+        const tableHTML = '<table><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Cell 1</td><td>Cell 2</td></tr></table><p></p>';
+        cmd('insertHTML', tableHTML);
+    };
+
+    window.addPaymentButton = () => {
+        const link = document.getElementById('payment-link').value || '#';
+        const text = document.getElementById('total-amount').value || 'Pay Now';
+        const btnHTML = `<div class="text-center mt-4"><a href="${link}" class="payment-button" target="_blank">Pay ${text}</a></div>`;
+        cmd('insertHTML', btnHTML);
+    };
+    
+    window.addSignature = () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/png, image/jpeg';
-        input.onchange = (e) => {
+        input.onchange = e => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    window.signatureImage = e.target.result;
-                    const signatureArea = document.getElementById('signature-area');
-                    signatureArea.innerHTML = `<img src="${window.signatureImage}" class="signature-img" alt="Signature">`;
-                    signatureArea.classList.add('has-signature');
-                    autoSave(); // Save after signature is added
+                reader.onload = (event) => {
+                    window.signatureImage = event.target.result;
+                    document.getElementById('signature-placeholder').innerHTML = `<img src="${window.signatureImage}" style="max-height: 40px; width: auto;" alt="Signature">`;
+                    autoSave();
                 };
                 reader.readAsDataURL(file);
             }
         };
         input.click();
     };
+
+    // === STATE MANAGEMENT ===
+    const updateToolbarStates = () => {
+        ['bold', 'italic', 'underline'].forEach(cmd => {
+            const btn = document.getElementById(`${cmd}-btn`);
+            if (btn) document.queryCommandState(cmd) ? btn.classList.add('active') : btn.classList.remove('active');
+        });
+    };
     
-    // Functions to insert content
-    window.insertImage = () => execCommand('insertHTML', `<img src="${prompt('Enter image URL:')}" style="max-width: 100%; border-radius: 8px;">`);
-    window.insertTable = () => execCommand('insertHTML', `<table><tr><th>Header 1</th><th>Header 2</th></tr><tr><td>Cell 1</td><td>Cell 2</td></tr></table>`);
-    window.insertQuote = () => execCommand('insertHTML', `<blockquote>${window.getSelection().toString() || 'Quote...'}</blockquote><p></p>`);
-    window.insertPaymentButton = () => {
-        const paymentLink = document.getElementById('payment-link').value;
-        const totalAmount = document.getElementById('total-amount').value;
-        if (!paymentLink) {
-            alert('Please enter a payment link in the Proposal Details first.');
-            return;
-        }
-        const buttonText = totalAmount ? `Pay ${totalAmount}` : 'Pay Now';
-        const buttonHTML = `<div style="text-align:center;margin:32px 0;"><a href="${paymentLink}" target="_blank" style="display:inline-block;background:#000;color:#fff;padding:16px 32px;border-radius:8px;text-decoration:none;font-weight:700;">${buttonText}</a></div>`;
-        execCommand('insertHTML', buttonHTML);
+    const updateTitleFromContent = () => {
+        const h1 = editor.querySelector('h1');
+        document.getElementById('project-title').value = h1 ? h1.textContent : '';
     };
 
-    window.clearDocument = () => {
-        if (confirm('Are you sure you want to clear the entire proposal?')) {
-            localStorage.removeItem('proposalPro_autosave');
-            location.reload();
-        }
+    const updateContentFromTitle = () => {
+        const title = document.getElementById('project-title').value;
+        const h1 = editor.querySelector('h1');
+        if (h1) h1.textContent = title || 'Your Proposal Title';
     };
-    
-    // === AUTOSAVE & LOAD ===
-    
+
+    // === AUTOSAVE SYSTEM ===
+    let saveTimeout;
     const autoSave = () => {
         const data = {
             content: editor.innerHTML,
@@ -133,14 +118,15 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentLink: document.getElementById('payment-link').value,
             signature: window.signatureImage,
         };
-        localStorage.setItem('proposalPro_autosave', JSON.stringify(data));
+        localStorage.setItem('pp_autosave', JSON.stringify(data));
+        console.log('Proposal autosaved.');
     };
 
-    const loadAutosavedData = () => {
-        const savedData = localStorage.getItem('proposalPro_autosave');
-        if (savedData) {
-            if (confirm('Found autosaved content. Would you like to restore it?')) {
-                const data = JSON.parse(savedData);
+    const loadAutoSave = () => {
+        const saved = localStorage.getItem('pp_autosave');
+        if (saved) {
+            if (confirm('Found recent autosaved work. Restore it?')) {
+                const data = JSON.parse(saved);
                 editor.innerHTML = data.content || '';
                 document.getElementById('client-name').value = data.clientName || '';
                 document.getElementById('project-title').value = data.projectTitle || '';
@@ -148,55 +134,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('payment-link').value = data.paymentLink || '';
                 if (data.signature) {
                     window.signatureImage = data.signature;
-                    const signatureArea = document.getElementById('signature-area');
-                    signatureArea.innerHTML = `<img src="${window.signatureImage}" class="signature-img" alt="Signature">`;
-                    signatureArea.classList.add('has-signature');
+                    document.getElementById('signature-placeholder').innerHTML = `<img src="${window.signatureImage}" style="max-height: 40px; width: auto;" alt="Signature">`;
                 }
+                return true;
             }
         }
-        if (!editor.innerHTML.trim()) {
-            loadTemplate('business');
-        }
+        return false;
     };
 
     // === INITIALIZATION & EVENT LISTENERS ===
-    
-    // Initialize everything
-    lucide.createIcons();
-    loadTheme();
-    loadAutosavedData();
-    updateToolbarStates();
-    editor.focus();
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    function init() {
+        lucide.createIcons();
+        const savedTheme = localStorage.getItem('pp_theme') || 'light';
+        document.documentElement.dataset.theme = savedTheme;
+        updateThemeIcon(savedTheme);
 
-    // Setup event listeners
-    document.addEventListener('selectionchange', updateToolbarStates);
-    document.getElementById('project-title').addEventListener('input', updateEditorTitleFromInput);
-    
-    // Debounced autosave for all inputs
-    let saveTimeout;
-    const allInputs = [editor, ...document.querySelectorAll('.detail-input')];
-    allInputs.forEach(input => {
-        input.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(autoSave, 1000);
-        });
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', e => {
-        if (e.ctrlKey || e.metaKey) {
-            const key = e.key.toLowerCase();
-            if (['b', 'i', 'u', 's', 'd', 'p'].includes(key)) e.preventDefault();
-            
-            switch(key) {
-                case 'b': execCommand('bold'); break;
-                case 'i': execCommand('italic'); break;
-                case 'u': execCommand('underline'); break;
-                case 's': exportToHTML(); break;
-                case 'd': toggleTheme(); break;
-                case 'p': previewProposal(); break;
-            }
+        if (!loadAutoSave()) {
+            loadTemplate('client');
         }
-    });
+        
+        editor.focus();
+        updateToolbarStates();
+
+        // Event Listeners
+        document.addEventListener('selectionchange', updateToolbarStates);
+        document.getElementById('project-title').addEventListener('input', updateContentFromTitle);
+        editor.addEventListener('input', updateTitleFromContent);
+        
+        // Autosave listener for all inputs
+        const inputsToSave = [...document.querySelectorAll('.detail-input'), editor];
+        inputsToSave.forEach(el => el.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(autoSave, 1500);
+        }));
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (!(e.ctrlKey || e.metaKey)) return;
+            const key = e.key.toLowerCase();
+            if ('biukpls'.includes(key)) e.preventDefault();
+            
+            switch (key) {
+                case 'b': cmd('bold'); break;
+                case 'i': cmd('italic'); break;
+                case 'u': cmd('underline'); break;
+                case 'k': addLink(); break;
+                case 'p': exportPDF(); break;
+                case 'l': toggleTheme(); break;
+                case 'd': toggleDetails(); break;
+                case 's': autoSave(); alert('Saved!'); break;
+            }
+        });
+    }
+
+    init();
 });
